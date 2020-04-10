@@ -1,0 +1,196 @@
+{% extends "orders/base.html" %}
+{% load i18n staticfiles static %}
+{% load number_cn %}
+
+{% block extrastyle %}
+	<style type="text/css">
+		label{
+			display:flex;
+			justify-content:center;
+			align-items:center
+		}
+		td{
+			vertical-align: middle;
+		}
+		th{
+			vertical-align: middle;
+		}
+		textarea{
+			width:90%;
+			resize:none;
+		}
+		#additem{
+			height:160px;
+			border-bottom:2px;
+			display:flex;
+			justify-content:center;
+			align-items:center;
+			border:1px dashed
+		}
+		.orderitem{
+			margin-bottom:10px;
+			padding:2px 3px
+		}
+		.item{
+			margin-bottom:5px
+		}
+		ol{
+			list-style:none;
+		}
+		#addnote{
+			border-radius:5px;
+			border:1px dashed;
+			width:20%;
+			display:flex;
+			justify-content:center;
+			align-items:center
+		}
+	</style>
+{% endblock %}
+{% block JS %}
+	<script src="{% static 'bootstrap/js/jquery.form.js' %}"></script>
+	<script type="text/javascript">
+ 		function deleteItem(obj){
+			obj.parentNode.parentNode.parentNode.removeChild(obj.parentNode.parentNode);
+		} 
+		function overAdd(){
+			var additem = document.getElementById("additem");
+			additem.style.background="rgba(0,0,0,0.1)";
+		}
+		function leaveAdd(){
+			var additem = document.getElementById("additem");
+			additem.style.background="#fff";
+		}
+		function overItem(obj){
+			obj.style.border = "1px dashed";
+		}
+		function leaveItem(obj){
+			obj.style.border="";
+		}
+		function toChinesNum(num){
+		    let changeNum = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']; //changeNum[0] = "零"
+		    let unit = ["", "十", "百", "千", "万"];
+		    num = parseInt(num);
+		    let getWan = (temp) => {
+		    let strArr = temp.toString().split("").reverse();
+		    let newNum = "";
+		    for (var i = 0; i < strArr.length; i++) {
+		      newNum = (i == 0 && strArr[i] == 0 ? "" : (i > 0 && strArr[i] == 0 && strArr[i - 1] == 0 ? "" : changeNum[strArr[i]] + (strArr[i] == 0 ? unit[0] : unit[i]))) + newNum;
+		    }
+		     return newNum;
+		   }
+		   let overWan = Math.floor(num / 10000);
+		   let noWan = num % 10000;
+		   if (noWan.toString().length < 4) noWan = "0" + noWan;
+		   return overWan ? getWan(overWan) + "万" + getWan(noWan) : getWan(num);
+		}
+		function save(){
+		    $("#orderform").ajaxSubmit({
+		    	url:"{% url 'orders:save' orderid=order.id%}",
+		    	type: 'post',
+		    	success:function(result) {
+		        // 对于表单提交成功后处理，message为表单正常提交后返回的内容
+		        alert(result);
+		        },
+		    });
+		    return false
+		}
+	</script>
+	<script>
+	$(document).ready(function(){
+		$("#additem").click(function(){
+			$("#orderitemlist").append(
+					'<div class="orderitem" onmouseover="overItem(this)" onmouseout="leaveItem(this)" id="1">' +
+					'<div class="item" style="text-align:right"><a class="deletelink" onclick="deleteItem(this)"></a></div>' + 
+					'<div class="item1"><span></span>、&nbsp<input type="datetime-local" name="start_time" placeholder="开始时间" required="" id="id_start_time">至<input type="datetime-local" name="end_time" placeholder="结束时间" required="" id="id_end_time">，' + 
+					'因<input type="text" name="place" class="vTextField" placeholder="地点" id="id_place"><input type="text" name="cause" class="vTextField" placeholder="原因" id="id_cause"></div>' + 
+					'<div class="item">1.&nbsp速度不高于<input type="number" name="speed_limit" class="vTextField" placeholder="限速" id="id_speed_limit">，<input type="text" name="speed_note" class="vTextField" placeholder="备注" id="id_speed_note"></div>' +
+					'<div class="item">2.&nbsp<textarea name="pattern" rows="3" class="vTextField" placeholder="行车方式变化" autoHeight="true" id="id_pattern"></textarea></div>' + 
+					'<div class="item">3.&nbsp<textarea name="device" rows="3" class="vTextField" placeholder="设备变更" id="id_device"></textarea></div>' +
+				'</div>');
+		 	$("#orderitemlist .orderitem").each(function(){
+		 		var index = $(this).index() + 1
+		 		$(this).children(".item1").children("span").html(toChinesNum(index))
+		 		});
+		});
+		$("#orderitemlist").on('DOMNodeRemoved',function(e){
+			if(e.target.className=="orderitem")
+				setTimeout(function(){
+					$("#orderitemlist .orderitem").each(function(){
+					var index = $(this).index() + 1
+					console.log(index)
+					$(this).children(".item1").children("span").html(toChinesNum(index))
+				});} ,100)
+		});
+	});
+	</script>
+{% endblock %}
+
+		{% block content %}
+		<form style="display:flex;flex-direction:column;justify-content:space-around;align-items:center;" id="orderform"
+		method="post" action="{% url 'orders:save' orderid=order.id%}" onsubmit="return save()">
+			{% csrf_token %}
+			<div style="display:flex;justify-content:center;">
+				<table style="width:100%;" border="1">
+					<tr>
+						<th><label>命令号</label></th>
+						<td><label>{{order.id}}</label></td>
+						<th><label>（局）施工台</label></th>
+						<td><label>{{ myorderform.platform }}</label></td>
+						<th><label>调度员</label></th>
+						<td><label>{{user.name}}</label></td>
+						<th><label>电话</label></th>
+						<td><label>{{ phone }}</label></td>
+					</tr>
+					<tr>
+						<th><label>起止时间</label></th>
+						<td colspan="3"><label>{{ myorderform.start_date }}&nbsp&nbsp至&nbsp&nbsp{{ myorderform.end_date }}</label></td>
+						<th><label>出示日期</label></th>
+						<td><label>{{order.founddate}}</label></td>
+						<th><label>撤除日期</label></th>
+						<td><label>       </label></td>
+					</tr>
+					<tr>
+						<th><label>命令内容</label></th>
+						<td colspan="7">
+							<div id="orderitemlist" style="height:auto">
+							{% for myorderitemform in myorderitemformlist %}
+								<div class="orderitem" onmouseover="overItem(this)" onmouseout="leaveItem(this)" id="1">
+									<div class="item" style="text-align:right;"><a class="deletelink" onclick="deleteItem(this)"></a></div>
+									<div class="item1"><span>{% indexCN forloop.counter %}</span>、&nbsp{{myorderitemform.start_time}}至{{myorderitemform.end_time}}，因{{myorderitemform.place}}{{myorderitemform.cause}}</div>
+									<div class="item">1.&nbsp速度不高于{{myorderitemform.speed_limit}}，{{myorderitemform.speed_note}}</div>
+									<div class="item">2.&nbsp{{myorderitemform.pattern}}</div>
+									<div class="item">3.&nbsp{{myorderitemform.device}}</div>
+								</div>
+							{% endfor %}
+							</div>
+							<div id="additem" onmouseover="overAdd()" onmouseout="leaveAdd()">
+								<a class="addlink" style="background-size:60px 60px;width:60px;height:60px"></a>
+							</div>
+						</td>
+					</tr>
+					<tr style="font-size:10px">
+						<th><label>单位</label></th>
+						<td><label>{{ myorderform.unit }}</label></td>
+						<th><label>签收人</label></th>
+						<td><label></label></td>
+						<th><label>复核人</label></th>
+						<td><label>{{ order.verifier }}</label></td>
+						<th><label>撤除人</label></th>
+						<td><label></label></td>
+					</tr>
+				</table>
+				{% if order.status_code == 2 %}
+				<div id="addnote">{{order.note}}</div>
+				{% endif %}
+			</div>
+			<div>
+				<input type="submit" value="保存">
+				<input type="button" style="background:white;color:black;border:#79aec8 1px solid;border-radius: 4px;" value="保存并提交">
+			</div>
+		</form>
+		{% endblock %}
+		
+		
+
+		

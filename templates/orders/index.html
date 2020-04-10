@@ -1,0 +1,137 @@
+{% extends "orders/base.html" %}
+{% load i18n staticfiles static %}
+{% load classfilter %}
+
+{% block extrastyle %}
+	<style type="text/css">
+		.section{
+			color:#fff
+		}
+		th{
+			width:0!important;
+		}
+		label{
+			 display:flex;
+			 justify-content:center;
+		}
+		table{
+			width:100%!important
+		}
+	</style>
+{% endblock %}
+
+{% block JS %}
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$(".deletelink").click(function(){
+				if (confirm("确认删除？")){
+					var id=$(this).attr('id')
+					var csrf = $('input[name="csrfmiddlewaretoken"]').val();
+				    $.post("{% url 'orders:delete' %}",
+				    		{
+				    	      id:id,
+				    	      csrfmiddlewaretoken:csrf
+				    	    },
+				    	    function(data,status){
+				    	    	if(data==1)
+				    	    		$('#' + id).parent().parent().parent().remove()
+				    	    });
+				}
+			});
+			$(".uploadlink").click(function(){
+				if(confirm("确认提交？")){
+					var id=$(this).attr('id')
+					var csrf=$('input[name="csrfmiddlewaretoken"]').val();
+				    $.post("{% url 'orders:submit' %}",
+				    		{
+				    	      id:id,
+				    	      csrfmiddlewaretoken:csrf
+				    	    },
+				    	    function(data,status){
+				    	    	if(data==1){
+				    	    		alert('提交成功，正在审核……')
+				    	    		location.reload();
+				    	    	}
+				    	    });
+				}
+			});
+			{% if user.state == 1 or user.state == 2 %}
+			$(".orderitem").mouseover(function(){
+				$(this).css({
+					"color":"grey",
+					})
+			});
+			$(".orderitem").mouseout(function(){
+				$(this).css({
+					"color":"",
+				})
+			});
+			{% endif %}
+		});
+	</script>
+{% endblock %}
+<!-- Container -->
+	<!-- Header -->
+	    <!-- END Header -->
+	    
+	    <!-- Content -->
+		{% block coltype %}col{% endblock %}
+		
+		{% block content_title %}
+	        <div style="display: flex;justify-content: space-between;">
+	        	<h1>调度命令列表</h1>
+	        	{% if user.state == 0 %}
+	        	<a class="addlink" style="background-size:40px 40px;height:40px;width:40px" href="{% url 'orders:neworder' %}"></a>
+	        	{% endif %}
+	        </div>
+	    {% endblock %}
+	    
+	    {% block content %}
+	    {% csrf_token %}
+			<div id="content-main">
+			 	   <div class="app-accounts module">
+			 	   <!-- Table -->
+				        <table>
+				        	<tr style="background-color:#79aec8">
+				        		<th><label class="section">id</label></th>
+				        		<th><label class="section">施工平台</label></th>
+				        		<th><label class="section">调度员</label></th>
+				        		<th><label class="section">开始日期</label></th>
+				        		<th><label class="section">结束日期</label></th>
+				        		<th><label class="section">创建日期</label></th>
+				        		<th><label class="section">状态</label></th>
+				        		{% if user.state == 0 %}
+				        		<th><label class="section">操作</label></th>
+				        		{% endif %}
+				        	</tr>
+				        	{% for order in orders %}
+				        	<tr class="orderitem" onclick="{% if user.state == 1 %}javascrtpt:window.location.href='{% url "orders:verify" orderid=order.id%}'{% elif user.state == 2 %}javascrtpt:window.location.href='{% url "orders:publish" orderid=order.id%}'{% endif %}">
+				        		<td><label>{{order.id}}</label></td>
+				        		<td><label>{{order.platform}}</label></td>
+				        		<td><label>{{order.creater}}</label></td>
+				        		<td><label>{{order.startdate}}</label></td>
+				        		<td><label>{{order.enddate}}</label></td>
+				        		<td><label>{{order.founddate}}</label></td>
+				        		<td><label>{{order.status}}</label></td>
+				        		{% if user.state == 0 %}
+				        		<td>
+				        			{% if order.status_code == 0 or order.status_code == 2 %}
+				        			<label>
+				        				<a class="changelink" href="{% url 'orders:edit' orderid=order.id%}">编辑</a>
+				        				&nbsp&nbsp&nbsp
+				        				<a class="deletelink" href="" id="{{order.id}}">删除</a>
+				        				&nbsp&nbsp&nbsp
+				        				<a class="uploadlink" href="" id="{{order.id}}">提交</a>
+				        			</label>
+				        			{% else %}
+				        			<label style="color:grey">无法操作</label>
+				        			{% endif %}<!-- if order.status_code==0 -->
+				        		</td>
+				        		{% endif %}<!-- if user.state==0 -->
+				        	</tr>
+				        	{% endfor %}
+				        </table>
+				        <!-- end Table -->
+			        </div>
+			</div>
+		{% endblock %}

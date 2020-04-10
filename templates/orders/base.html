@@ -1,0 +1,131 @@
+{% load i18n static %}<!DOCTYPE html>
+
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+<title>{% block title %}{% trans '调度命令管理系统' %}{% endblock %}</title>
+<link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "generic/css/base.css" %}{% endblock %}">
+<link rel="stylesheet" type="text/css" href="{% static "generic/css/dashboard.css" %}">
+{% block extrahead %}
+{% endblock %}
+
+{% block responsive %}
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static "generic/css/responsive.css" %}">
+{% endblock %}
+
+{% block blockbots %}
+	<meta name="robots" content="NONE,NOARCHIVE">
+{% endblock %}
+
+
+{% block extrastyle %}
+<style type="text/css">
+</style>
+{% endblock %}
+
+
+<script src="{% static 'bootstrap/js/jquery.min.js' %}"></script>
+
+
+{% block JS %}
+<script type="text/javascript">
+</script>
+{% endblock %}
+
+</head>
+
+{% load i18n %}
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
+  data-admin-utc-offset="{% now "Z" %}">
+
+<!-- Container -->
+	<div id="container">
+	    <!-- Header -->
+	    <div id="header">
+	        <div id="branding">
+	        
+				<!-- 1. branding -->
+		        {% block branding %}
+		        	<h1 id="site-name"><a href="{% url 'orders:index' %}">调度命令管理系统</a></h1>
+		        {% endblock %}
+	        </div>
+	        
+	        <!-- 2. usertools -->
+	        {% block usertools %}
+		        <div id="user-tools">
+		        		        
+		            <!-- 3. welcome-msg -->
+		            {% block welcome-msg %}
+		                {% trans '欢迎,' %}
+		                <strong>{{ user.statename }}{{ user.name }}</strong>.
+		            {% endblock %}
+		            
+		            <!-- 4. userlinks -->
+		            {% block userlinks %}
+		                <a href="{% url 'admin:password_change' %}">{% trans '修改密码' %}</a> /
+		                <a href="{% url 'accounts:login' %}">{% trans '退出登录' %}</a>
+		            {% endblock %}
+		        </div>
+
+	        {% endblock %}
+	        
+	        <!-- 5. nav-global -->
+	        {% block nav-global %}
+	        {% endblock %}
+	    </div>
+	    <!-- END Header -->
+	    
+	    <!-- 6. breadcrumbs -->
+	    {% block breadcrumbs %}
+	    <div class="breadcrumbs">
+	    <a href="{% url 'orders:index' %}">{% trans '主页' %}</a>
+		    {% if title %}
+				&rsaquo; {{ title }}
+			{% endif %}
+	    </div>
+	    {% endblock %}
+
+	<!-- 7. messages -->
+    {% block messages %}
+        {% if messages %}
+        <ul class="messagelist">{% for message in messages %}
+          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
+        {% endfor %}</ul>
+        {% endif %}
+    {% endblock messages %}
+
+    <!-- Content -->
+    <div id="content" class="{% block coltype %}colM{% endblock %}">
+        <!-- 8. pretitle -->
+        {% block pretitle %}{% endblock %}
+        
+        <!-- 9. content_title -->
+        {% block content_title %}
+        
+        {% endblock %}
+        
+        <!-- 10. content -->
+        {% block content %}
+        
+        	{% block object-tools %}{% endblock %}
+        	{{ content }}
+        
+        {% endblock %}
+        
+        <!-- 11. sidebar -->
+        {% block sidebar %}
+        {% endblock %}
+    </div>
+    <!-- END Content -->
+
+	<!-- 12. footer -->
+	<div id="footer">
+	    {% block footer %}
+	    {% endblock %}
+    </div>
+	</div>
+<!-- END Container -->
+</body>
+</html>

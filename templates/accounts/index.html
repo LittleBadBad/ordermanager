@@ -1,0 +1,55 @@
+{% load i18n staticfiles static %}
+{% load classfilter %}
+<!DOCTYPE html>
+<html lang="en-us" >
+	<head>
+		<title>登录</title>
+		<link rel="stylesheet" type="text/css" href="{% static 'generic/css/base.css' %}">
+		<link rel="stylesheet" type="text/css" href="{% static 'generic/css/mylogin.css' %}">
+		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" charset=utf-8">
+		<link rel="stylesheet" type="text/css" href="{% static 'generic/css/responsive.css' %}">
+		<style type="text/css">
+			.vTextField{
+			width:100%
+			}
+		</style>
+	</head>
+	<body class=" login" >
+		<!-- Container -->
+		<div id="container">
+			    <!-- Header -->
+			<div id="header" style="display:flex;justify-content:center;">
+				<div id="branding">
+					<h1 id="site-name" style="text-align:center">login</h1>
+				</div>
+			</div>
+			    <!-- END Header -->
+			    <!-- Content -->
+			<div id="content" class="colM">
+				<div id="content-main">
+				<form action="{% url 'accounts:login' %}" method="post" id="login-form">
+					{% csrf_token %}
+					{% for foo in myform %}
+					<div class="form-row">
+						<div style="display:flex">{{ foo | label_with_classes:'required' }}<div style="vertical-align:center">{{ foo.errors }}</div></div>
+						{{ foo }}
+					</div>
+					{% endfor %}
+				  	<!--{% url 'admin_password_reset' as password_reset_url %}
+					{% if password_reset_url %}
+					<div class="password-reset-link">
+						<a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
+					</div>
+					{% endif %}-->
+					<div class="submit-row">
+				    	<input type="submit" value="Log in">
+				    	&nbsp &nbsp &nbsp<a href="{% url 'accounts:register' %}">{% trans '注册' %}</a>
+					</div>
+				</form>
+				</div>
+				<br class="clear">
+			</div>
+		</div>
+		<!-- END Container -->
+	</body>
+</html>
