@@ -16,4 +16,5 @@ urlpatterns = [
     path('reject/<orderid>', views.reject, name='reject'),
     path('publish/<orderid>', views.checkorder, name='publish'),
     path('publishorder/', views.publishorder, name='publishorder'),
+    path('recall/',views.recall, name='recall')
 ] 

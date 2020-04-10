@@ -167,6 +167,25 @@
 			    	    });
 			}
 		});
+		$("#recall").click(function(){
+			var csrf=$('input[name="csrfmiddlewaretoken"]').val();
+			var text= "确认撤除？"
+			if(confirm(text)){
+			    $.post("{% url 'orders:recall' %}",
+			    		{
+			    	      id:{{order.id}},
+			    	      csrfmiddlewaretoken:csrf
+			    	    },
+			    	    function(data,status){
+			    	    	if(data==1){
+			    	    		location.reload();
+			    	    		alert("已发布")
+			    	    	}else{
+			    	    		alert(data)
+			    	    	}
+			    	    });
+			}
+		});
 	});
 	</script>
 {% endblock %}
@@ -191,7 +210,7 @@
 						<th><label>出示日期</label></th>
 						<td><label>{{order.founddate}}</label></td>
 						<th><label>撤除日期</label></th>
-						<td><label>       </label></td>
+						<td><label>{{order.deletedate}}</label></td>
 					</tr>
 					<tr>
 						<th><label>命令内容</label></th>
@@ -241,7 +260,7 @@
 				<script type="text/javascript" src="{% static 'bootstrap/js/jquery.jqprint-0.3.js' %}"></script>
 				<script type="text/javascript" src="{% static 'bootstrap/js/jquery-migrate-1.2.1.min.js' %}"></script>
 				<input onclick="onprint()" type="button" value="打印" name="_addanother">
-				<input type="submit" style="background:#CC3434" value="撤除" name="_addanother">
+				<input id="recall" style="background:#CC3434" value="撤除" name="_addanother">
 			{% elif order.status_code == 5 %}
 			{%endif%}
 			</div>

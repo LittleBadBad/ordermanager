@@ -178,7 +178,16 @@ def publishorder(request):
     order.status_code=4
     order.save()
     return HttpResponse(1)
-    
+
+def recall(request):
+    data=request.POST
+    orderid=data['id']
+    userid=request.session.get('id')
+    order=get_object_or_404(Order,pk=orderid)
+    order.status_code=4
+    order.recaller_id=userid
+    order.delete_date=datetime.datetime.now()
+    order.save()
 # # 将class转dict,以_开头的属性不要
 # def props(obj):
 #     pr = {}
