@@ -13,11 +13,12 @@ class Order(models.Model):
     delete_date = models.DateField('删除日期',null=True)
     unit = models.CharField(max_length=20,null=True)#单位
     receiver_id = models.CharField(max_length=20,null=True)
-    recive_time = models.TimeField('签收日期',null=True)
+    receive_time = models.DateTimeField('签收日期',null=True)
     verifier_id = models.CharField(max_length=20,null=True)#审核员id
     recaller_id = models.CharField(max_length=20,null=True)#撤除人
     status_code = models.IntegerField(default=0)
-    note = models.CharField(max_length=200,null=True)
+    note = models.CharField(max_length=500,null=True)
+    
     def creater(self):
         return User.objects.get(pk=self.person_id).name
     def verifier(self):
@@ -30,6 +31,12 @@ class Order(models.Model):
             return User.objects.get(pk=self.recaller_id).name
         else:
             return ''
+    def receiver(self):
+        if self.receiver_id:
+            return User.objects.get(pk=self.receiver_id).name
+        else:
+            return ''
+        
     def startdate(self):
         if(self.start_date):
             return self.start_date.strftime("%Y-%m-%d")
@@ -47,6 +54,10 @@ class Order(models.Model):
             return self.delete_date.strftime("%Y-%m-%d")
         else:
             return ''
+    def receivetime(self):
+        if(self.receive_time):
+            return self.receive_time.strftime(" %m月%d日 %H:%M")
+
     def status(self):
         status_code=self.status_code
         if status_code==0:
@@ -58,9 +69,11 @@ class Order(models.Model):
         elif status_code==3:
             return '待发布'
         elif status_code==4:
-            return '发布成功'
+            return '待签收'
         elif status_code==5:
             return '已撤除'
+        elif status_code==6:
+            return '已签收'
         else:
             return 'erro'
     
@@ -68,9 +81,9 @@ class Order_item(models.Model):
     order = models.ForeignKey(Order,on_delete=CASCADE)
     start_time = models.DateTimeField('开始时间')
     end_time = models.DateTimeField('结束时间')
-    place = models.CharField(max_length=50)
-    cause = models.CharField(max_length=20)
-    speed_limit = models.IntegerField(default=100)
-    speed_note = models.CharField(max_length=100,null=True)
-    pattern = models.CharField(max_length=100)
-    device = models.CharField(max_length=100)
+    place = models.CharField(max_length=50,null=True)
+    cause = models.CharField(max_length=20,null=True)
+    speed_limit = models.IntegerField(null=True)
+    speed_note = models.CharField(max_length=200,null=True)
+    pattern = models.CharField(max_length=200,null=True)
+    device = models.CharField(max_length=200,null=True)

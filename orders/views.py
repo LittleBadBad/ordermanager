@@ -13,10 +13,15 @@ from django.http.response import HttpResponse
 # Create your views here.
 
 def index(request):
-    userid=request.session.get('id')    
+    userid=request.session.get('id')
+    if request.session.get('firstlogin') == 1:
+        firstlogin=1
+        del request.session['firstlogin']
+    else:
+        firstlogin=0
     #print(userid)
     user = get_object_or_404(User, pk=userid)
-    
+    #print(user.station)
     if user.state == 0:
         orders = user.order_set.filter(~Q(status_code=-1))#~Q取反
         #orders = user.order_set.filter(Q(status_code=0)|Q(status_code=1))
@@ -24,7 +29,9 @@ def index(request):
         orders = Order.objects.filter(Q(status_code=1)|Q(status_code=2)|Q(status_code=3))
     elif user.state == 2:
         orders = Order.objects.filter(Q(status_code=3)|Q(status_code=4)|Q(status_code=5))
-    return render(request, 'orders/index.html',{'user':user,'orders':orders})
+    elif user.state == 3:
+        orders = Order.objects.filter(receiver_id=userid)
+    return render(request, 'orders/index.html',locals())
 
 def order(request):
     userid=request.session.get('id')
@@ -55,23 +62,33 @@ def save(request,orderid):
     order.start_date=data['start_date']
     order.end_date=data['end_date']
     order.unit=data['unit']
-    order.receiver_id=data['receiver']
     order.save()
     order.order_item_set.all().delete()
     length = len(data.getlist('start_time'))
     print(length)
     for i in range( len(data.getlist('start_time'))):
         print(i)
-        order.order_item_set.create(
-            start_time=data.getlist('start_time')[i],
-            end_time=data.getlist('end_time')[i],
-            place=data.getlist('place')[i],
-            cause=data.getlist('cause')[i],
-            speed_limit=data.getlist('speed_limit')[i],
-            speed_note=data.getlist('speed_note')[i],
-            pattern=data.getlist('pattern')[i],
-            device=data.getlist('device')[i]
-        )
+        if data.getlist('speed_limit')[i]:
+            order.order_item_set.create(
+                start_time=data.getlist('start_time')[i],
+                end_time=data.getlist('end_time')[i],
+                place=data.getlist('place')[i],
+                cause=data.getlist('cause')[i],
+                speed_limit=data.getlist('speed_limit')[i],
+                speed_note=data.getlist('speed_note')[i],
+                pattern=data.getlist('pattern')[i],
+                device=data.getlist('device')[i]
+            )
+        else:
+            order.order_item_set.create(
+                start_time=data.getlist('start_time')[i],
+                end_time=data.getlist('end_time')[i],
+                place=data.getlist('place')[i],
+                cause=data.getlist('cause')[i],
+                speed_note=data.getlist('speed_note')[i],
+                pattern=data.getlist('pattern')[i],
+                device=data.getlist('device')[i]
+            )
     
     return HttpResponse("保存成功")
 
@@ -104,8 +121,8 @@ def edit(request,orderid):
     myorderitemformlist=[]
     for item in items:
         myorderitemformlist.append(myorderform.orderitemForm({
-            'start_time':item.start_time.strftime("%Y-%m-%dT%H:%m"),
-            'end_time':item.end_time.strftime("%Y-%m-%dT%H:%m"),
+            'start_time':item.start_time.strftime("%Y-%m-%dT%H:%M"),
+            'end_time':item.end_time.strftime("%Y-%m-%dT%H:%M"),
             'place':item.place,
             'cause':item.cause,
             'speed_limit':item.speed_limit,
@@ -136,11 +153,18 @@ def checkorder(request,orderid):
     phone = base64.b64decode(creater.phone)
     phone=str(phone,'utf-8')
     
+    for item in orderitemlist:
+        item.start_time=item.start_time.strftime("%m月%d日 %H:%M")
+        item.end_time=item.end_time.strftime("%m月%d日%H:%M")
+    
     if user.state==1:
         title='审核命令'
     elif user.state==2:
         title='检查发布'
-    
+        orderform=orderForm()
+    else:
+        title='查看命令'
+    print(user.state,order.status_code)
     return render(request, 'orders/checkorder.html', locals())
 
 def passorder(request):
@@ -170,12 +194,28 @@ def reject(request,orderid):
         return HttpResponse(1)
     else:
         return HttpResponse('erro')
-    
-def publishorder(request):
+
+def getstation(request):
     data=request.POST
-    orderid=data['id']
+    receiverid=data['id']
+    receiver=get_object_or_404(User,pk=receiverid)
+    return HttpResponse(receiver.station)
+
+def publishorder(request,orderid):
+    data=request.POST
     order=get_object_or_404(Order,pk=orderid)
     order.status_code=4
+    order.receiver_id=data['receiver']
+    order.save()
+    return HttpResponse(1)
+
+def sign(request):
+    data=request.POST
+    orderid=data['id']
+    userid=request.session.get('id')
+    order=get_object_or_404(Order,pk=orderid)
+    order.status_code=6
+    order.receive_time=datetime.datetime.now()
     order.save()
     return HttpResponse(1)
 
@@ -184,10 +224,12 @@ def recall(request):
     orderid=data['id']
     userid=request.session.get('id')
     order=get_object_or_404(Order,pk=orderid)
-    order.status_code=4
+    order.status_code=5
     order.recaller_id=userid
     order.delete_date=datetime.datetime.now()
     order.save()
+    return HttpResponse(1)
+
 # # 将class转dict,以_开头的属性不要
 # def props(obj):
 #     pr = {}

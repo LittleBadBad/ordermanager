@@ -19,4 +19,4 @@ class orderForm(forms.Form):
         device = forms.CharField(required=False,widget=forms.Textarea(attrs={"class": "vTextField","placeholder":"设备变更",'rows':'3'}))
     def __init__(self, *args, **kwargs):
         super(orderForm, self).__init__(*args, **kwargs)
-        self.fields['receiver'].choices = User.objects.filter(state=1).values_list('id','name')#valuelist
+        self.fields['receiver'].choices = User.objects.filter(state=3).values_list('id','name')#valuelist

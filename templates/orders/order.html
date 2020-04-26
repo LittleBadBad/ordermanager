@@ -122,6 +122,29 @@
 					$(this).children(".item1").children("span").html(toChinesNum(index))
 				});} ,100)
 		});
+		$("#saveAndSub").click(function(){
+			if(confirm("确认提交？"))
+		    $("#orderform").ajaxSubmit({
+		    	url:"{% url 'orders:save' orderid=order.id%}",
+		    	type: 'post',
+		    	success:function(result) {
+		        // 对于表单提交成功后处理，message为表单正常提交后返回的内容
+		        var id={{ order.id }}
+		        var csrf=$('input[name="csrfmiddlewaretoken"]').val();
+			    $.post("{% url 'orders:submit' %}",
+			    		{
+			    	      id:id,
+			    	      csrfmiddlewaretoken:csrf
+			    	    },
+			    	    function(data,status){
+			    	    	if(data==1){
+			    	    		alert('提交成功，正在审核……')
+			    	    		location.reload();
+			    	    	}
+			    	    });
+		        },
+		    });
+		})
 	});
 	</script>
 {% endblock %}
@@ -158,7 +181,7 @@
 								<div class="orderitem" onmouseover="overItem(this)" onmouseout="leaveItem(this)" id="1">
 									<div class="item" style="text-align:right;"><a class="deletelink" onclick="deleteItem(this)"></a></div>
 									<div class="item1"><span>{% indexCN forloop.counter %}</span>、&nbsp{{myorderitemform.start_time}}至{{myorderitemform.end_time}}，因{{myorderitemform.place}}{{myorderitemform.cause}}</div>
-									<div class="item">1.&nbsp速度不高于{{myorderitemform.speed_limit}}，{{myorderitemform.speed_note}}</div>
+									<div class="item">1.&nbsp速度不高于{{myorderitemform.speed_limit}}km/h，{{myorderitemform.speed_note}}</div>
 									<div class="item">2.&nbsp{{myorderitemform.pattern}}</div>
 									<div class="item">3.&nbsp{{myorderitemform.device}}</div>
 								</div>
@@ -186,7 +209,7 @@
 			</div>
 			<div>
 				<input type="submit" value="保存">
-				<input type="button" style="background:white;color:black;border:#79aec8 1px solid;border-radius: 4px;" value="保存并提交">
+				<input id="saveAndSub" type="button" style="background:white;color:black;border:#79aec8 1px solid;border-radius: 4px;" value="保存并提交">
 			</div>
 		</form>
 		{% endblock %}

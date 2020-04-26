@@ -1,4 +1,5 @@
-{% load i18n static %}<!DOCTYPE html>
+{% load i18n static %}
+<!DOCTYPE html>
 
 {% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
 
@@ -59,7 +60,7 @@
 		            <!-- 3. welcome-msg -->
 		            {% block welcome-msg %}
 		                {% trans '欢迎,' %}
-		                <strong>{{ user.statename }}{{ user.name }}</strong>.
+		                <strong>{% if user.state == 3 %}{{ user.station }}{% endif %}{{ user.statename }}{{ user.name }}</strong>.
 		            {% endblock %}
 		            
 		            <!-- 4. userlinks -->

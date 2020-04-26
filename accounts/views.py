@@ -24,9 +24,9 @@ def login(request):
             return redirect('orders:index')
         else:
             #print(myform.errors,'ERROR')
-            return render(request, 'accounts/index.html',locals())
+            return render(request, 'accounts/login.html',locals())
     myform=logForm()
-    return render(request, 'accounts/index.html',locals())
+    return render(request, 'accounts/login.html',locals())
 
 def register(request):
     if(request.method=='POST'):
@@ -37,22 +37,24 @@ def register(request):
             # myform.clean_data 表示校验通过的数据
             
             data = myform.cleaned_data
-            print(data)
+            #print(data)
             user = User()
             user.name=data['username']
             user.password=data['password']
             user.phone=data['telephone']
             user.state=data['state']
+            user.station=data['station']
             user.save()
-            
-            print(User.objects.all())
-            return HttpResponse('success')
+            #print(User.objects.all())
+            request.session['id']=user.id
+            request.session['firstlogin']=1
+            return redirect('orders:index')
         else:
             #print('errors',myform.errors)
             #print(myform.cleaned_data)
             #校验失败的信息，myform.errors  可以当成一个字典，它是所有错误信息{name:[列表,]}
             # 每个字段.errors 是一个列表，表示每个字段的错误信息
-            print(myform.errors,'ERROR')
+            #print(myform.errors,'ERROR')
             return render(request, 'accounts/register.html',locals())
     myform = regForm(request.POST)
     return render(request, 'accounts/register.html',locals())

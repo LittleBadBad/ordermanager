@@ -12,6 +12,7 @@ class User(models.Model):
     phone = models.CharField(max_length=50)
     state = models.IntegerField(default=0)
     reg_time = models.DateTimeField('注册日期')
+    station = models.CharField(max_length=50,null=True)
     def save(self, *args, **kwargs):#override save function
         #print('0',self.phone)
         self.password = hashlib.sha1(self.password.encode('utf-8')).hexdigest()
@@ -21,13 +22,17 @@ class User(models.Model):
         self.reg_time=now
         #print('1',self.phone)
         super(User, self).save(*args, **kwargs)
+    def stationer(self):
+        return self.name+self.station
     def statename(self):
         if self.state == 0:
-            return ''
+            return '调度员'
         elif self.state == 1:
             return '审核员'
         elif self.state == 2:
             return '管理员'
+        elif self.state == 3:
+            return '值班员'
         else:
             return 'erro'
     def __str__(self):

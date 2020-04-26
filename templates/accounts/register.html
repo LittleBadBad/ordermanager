@@ -10,7 +10,19 @@
 	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" charset=utf-8">
 	<link rel="stylesheet" type="text/css" href="/static/admin/css/responsive.css">
 	<meta name="robots" content="NONE,NOARCHIVE">
-
+	<script src="{% static 'bootstrap/js/jquery.min.js' %}"></script>
+	<script src="{% static 'bootstrap/js/jquery.form.js' %}"></script>
+	<script>
+		$(document).ready(function(){
+			$("#车站").hide()
+			$("select").change(function(){
+				if($("select").val()==3)
+					$("#车站").show(200),$("#车站").children().children("input").attr("required",'true')
+				else
+					$("#车站").hide(200),$("#车站").children().children("input").removeAttr("required")
+			})
+		})
+	</script>
 </head>
 	<body class=" app-accounts model-user change-form" data-admin-utc-offset="0">
 	<!-- Container -->
@@ -20,15 +32,10 @@
 		        <div id="branding">
 		        	<h1 id="site-name"><a href="{% url 'login' %}">调度命令管理系统</a></h1>
 		        </div>
-		        <!-- div id="user-tools">
-					Welcome,<strong>zcy</strong>.<a href="/">View site</a>/
-					<a href="/admin/password_change/">Change password</a> /
-					<a href="/admin/logout/">Log out</a>
-		        </div -->
 		    </div>
 		    <!-- END Header -->
 			<div class="breadcrumbs">
-				<a href="{% url 'login' %}">主页</a>
+				<a href="{% url 'login' %}">登录</a>
 				&rsaquo; 注册
 			</div>
 		    <!-- Content -->
@@ -39,7 +46,7 @@
 						{% csrf_token %}
 						<fieldset class="module aligned ">
 							{% for foo in myform %}
-							<div class="form-row" style="display:flex;justify-content:center">
+							<div class="form-row" style="display:flex;justify-content:center" id="{{foo.label}}">
 								<div>
 									{{ foo | label_with_classes:'required' }}{{ foo }}
 									<div style="position:relative;height:0;top:-25px;left:300px">{{ foo.errors }}</div>
@@ -61,60 +68,3 @@
 	    <!-- END Container -->
 	</body>
 </html>
-
-<!-- form action="" method="post" id="user_form" novalidate><input type="hidden" name="csrfmiddlewaretoken" value="GDwOua8WrYtqZXSIaDb211ZWyzM2dOh7cWezLEzFGfULCauFrBLNMiYQSWBbjcLS">
-<div>
-  <fieldset class="module aligned ">
-        <div class="form-row field-name">
-                <div>
-                        <label class="required" for="id_name">Name:</label>
-                            <input type="text" name="name" class="vTextField" maxlength="20" required id="id_name">
-                </div>
-        </div>
-        <div class="form-row field-password">
-                <div>
-                        <label class="required" for="id_password">Password:</label>
-                            <input type="text" name="password" class="vTextField" maxlength="128" required id="id_password">
-                </div>
-        </div>
-        <div class="form-row field-phone">
-                <div>
-                        <label class="required" for="id_phone">Phone:</label>
-                            <input type="text" name="phone" class="vTextField" maxlength="50" required id="id_phone">
-                </div>
-        </div>
-        <div class="form-row field-state">
-                <div>
-                        <label class="required" for="id_state">State:</label>
-                            <input type="number" name="state" value="0" class="vIntegerField" required id="id_state">
-                </div>
-        </div>
-        <div class="form-row field-reg_time">
-                <div>
-                        <label class="required" for="id_reg_time_0">注册日期:</label>
-                            <p class="datetime">
-  Date: <input type="text" name="reg_time_0" class="vDateField" size="10" required id="id_reg_time_0">
-<br>
-  Time: <input type="text" name="reg_time_1" class="vTimeField" size="8" required id="id_reg_time_1">
-							</p>
-                </div>
-        </div>
-</fieldset>
-<div class="submit-row">
-<input type="submit" value="Save" class="default" name="_save">
-<input type="submit" value="Save and add another" name="_addanother">
-<input type="submit" value="Save and continue editing" name="_continue">
-</div>
-    <script type="text/javascript"
-            id="django-admin-form-add-constants"
-            src="/static/admin/js/change_form.js"
-                data-model-name="user"
-            >
-    </script>
-<script type="text/javascript"
-        id="django-admin-prepopulated-fields-constants"
-        src="/static/admin/js/prepopulate_init.js"
-        data-prepopulated-fields="[]">
-</script>
-</div>
-</form -->

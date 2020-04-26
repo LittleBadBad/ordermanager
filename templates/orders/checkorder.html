@@ -7,15 +7,15 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'generic/css/myforms.css' %}">
 	<style type="text/css">
 		label{
-			display:flex;
-			justify-content:center;
-			align-items:center
+			text-align:center;
 		}
 		td{
 			vertical-align: middle;
+			text-align:center;
 		}
 		th{
 			vertical-align: middle;
+			text-align:center;
 		}
 		textarea{
 			width:90%;
@@ -31,7 +31,7 @@
 		}
 		.orderitem{
 			margin-bottom:10px;
-			padding:2px 3px
+			padding:2px 3px;
 		}
 		.item{
 			margin-bottom:5px
@@ -47,69 +47,121 @@
 			justify-content:center;
 			align-items:center
 		}
+		#orderform{
+			display:flex;
+			flex-direction:column;
+			justify-content:center
+		}
 		.verifyview{
 			display:flex;
-			justify-content:space-around
+			justify-content:center
 		}
-		@media (max-width: 767px){
+/* 		@media (max-width: 767px){
 			.verifyview{
 				display: inline-block
 			}
-		}
+		} */
 	</style>
 {% endblock %}
 {% block JS %}
+	<script type="text/javascript" src="{% static 'bootstrap/js/jquery.jqprint-0.3.js' %}"></script>	
+	<script type="text/javascript" src="{% static 'bootstrap/js/jquery-migrate-1.2.1.min.js' %}"></script>
 	<script src="{% static 'bootstrap/js/jquery.form.js' %}"></script>
 	<script type="text/javascript">
-		function overItem(obj){
-			obj.style.border = "1px dashed";
-		}
-		function leaveItem(obj){
-			obj.style.border="";
-		}
-		function toChinesNum(num){
-		    let changeNum = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']; //changeNum[0] = "零"
-		    let unit = ["", "十", "百", "千", "万"];
-		    num = parseInt(num);
-		    let getWan = (temp) => {
-		    let strArr = temp.toString().split("").reverse();
-		    let newNum = "";
-		    for (var i = 0; i < strArr.length; i++) {
-		      newNum = (i == 0 && strArr[i] == 0 ? "" : (i > 0 && strArr[i] == 0 && strArr[i - 1] == 0 ? "" : changeNum[strArr[i]] + (strArr[i] == 0 ? unit[0] : unit[i]))) + newNum;
-		    }
-		     return newNum;
-		   }
-		   let overWan = Math.floor(num / 10000);
-		   let noWan = num % 10000;
-		   if (noWan.toString().length < 4) noWan = "0" + noWan;
-		   return overWan ? getWan(overWan) + "万" + getWan(noWan) : getWan(num);
-		}
-		function reject(){
- 			if(confirm("一旦提交无法更改，确定？"))
-			    $("#orderform").ajaxSubmit({
-			    	url:"{% url 'orders:reject' orderid=order.id%}",
-			    	type: 'post',
-			    	success:function(result) {
-				        // 对于表单提交成功后处理，message为表单正常提交后返回的内容
-				        console.log(result)
-				        if(result==1){
-					        $(".submit-row").remove();
-					        $("#addnote").remove()
-					        location.reload();
-					        alert("劝退成功")
-				        }else{
-				        	alert(result)
-				        }
-			        },
-			    });
-		    return false
-		}
-		function onprint() {
-			var html = $(".verifyview").jqprint();
-		}
+	function overItem(obj){
+		obj.style.border = "1px dashed";
+	}
+	function leaveItem(obj){
+		obj.style.border="";
+	}
+	function toChinesNum(num){
+	    let changeNum = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']; //changeNum[0] = "零"
+	    let unit = ["", "十", "百", "千", "万"];
+	    num = parseInt(num);
+	    let getWan = (temp) => {
+	    let strArr = temp.toString().split("").reverse();
+	    let newNum = "";
+	    for (var i = 0; i < strArr.length; i++) {
+	      newNum = (i == 0 && strArr[i] == 0 ? "" : (i > 0 && strArr[i] == 0 && strArr[i - 1] == 0 ? "" : changeNum[strArr[i]] + (strArr[i] == 0 ? unit[0] : unit[i]))) + newNum;
+	    }
+	     return newNum;
+	   }
+	   let overWan = Math.floor(num / 10000);
+	   let noWan = num % 10000;
+	   if (noWan.toString().length < 4) noWan = "0" + noWan;
+	   return overWan ? getWan(overWan) + "万" + getWan(noWan) : getWan(num);
+	}
+	function reject(){
+		var text=$("textarea").val()? "一旦提交无法更改，确定？":"未做批注，是否继续？"
+			if(confirm(text))
+		    $("#orderform").ajaxSubmit({
+		    	url:"{% url 'orders:reject' orderid=order.id %}",
+		    	type: 'post',
+		    	success:function(result) {
+			        // 对于表单提交成功后处理，message为表单正常提交后返回的内容
+			        console.log(result)
+			        if(result==1){
+				        $(".submit-row").remove();
+				        $("#addnote").remove()
+				        location.reload();
+				        alert("劝退成功")
+			        }else{
+			        	alert(result)
+			        }
+		        },
+		    });
+	    return false
+	}
+	function publish(){
+		var id=$('select').val()
+		var csrf=$('input[name="csrfmiddlewaretoken"]').val();
+	    $.post("{% url 'orders:getstation' %}",
+	    		{
+	    	      id:id,
+	    	      csrfmiddlewaretoken:csrf
+	    	    },
+	    	    function(data,status){
+	    			var station=data
+	    			var text= "确认发布给"+station+'站的'+$('select').children("[value="+ $('select').val() +"]").html()+"？"
+	    			if(confirm(text))
+	    				$("#orderform").ajaxSubmit({
+	    					url:"{% url 'orders:publishorder' orderid=order.id %}",
+	    					type:"post",
+	    					success:function(result) {
+	    						if(result==1){
+	    					        $(".submit-row").remove();
+	    					        $("#addnote").remove()
+	    					        location.reload();
+	    					        alert("发布成功")
+	    				        }else
+	    				        	alert(result)
+	    					},
+	    				});
+	    	    });
+	    return false
+	}
+	function getStation(id){
+
+	}
+	function onprint() {
+		var html = $(".verifyview").jqprint({
+			debug:true,
+			printContainer: true,
+			importCSS: true
+		});
+	}
 	</script>
-	<script>
+	<script type="text/javascript">
 	$(document).ready(function(){
+		$(".orderitem").each(function(){
+			if($(this).children().length>2){
+				var i=0
+				$(this).children().each(function(){
+					$(this).children("#i").html(i++ +'.')
+				})
+			}
+		});
+		
 		{% if order.status_code == 1 %}
 		$("#addnote").mouseover(function(){
 			$(this).css({
@@ -148,25 +200,6 @@
 			    	    });
 			}
 		});
-		$("#publish").click(function(){
-			var csrf=$('input[name="csrfmiddlewaretoken"]').val();
-			var text= "确认发布？"
-			if(confirm(text)){
-			    $.post("{% url 'orders:publishorder' %}",
-			    		{
-			    	      id:{{order.id}},
-			    	      csrfmiddlewaretoken:csrf
-			    	    },
-			    	    function(data,status){
-			    	    	if(data==1){
-			    	    		location.reload();
-			    	    		alert("已发布")
-			    	    	}else{
-			    	    		alert(data)
-			    	    	}
-			    	    });
-			}
-		});
 		$("#recall").click(function(){
 			var csrf=$('input[name="csrfmiddlewaretoken"]').val();
 			var text= "确认撤除？"
@@ -179,7 +212,26 @@
 			    	    function(data,status){
 			    	    	if(data==1){
 			    	    		location.reload();
-			    	    		alert("已发布")
+			    	    		alert("已撤除")
+			    	    	}else{
+			    	    		alert(data)
+			    	    	}
+			    	    });
+			}
+		});
+		$("#sign").click(function(){
+			var csrf=$('input[name="csrfmiddlewaretoken"]').val();
+			var text= "确认签收？"
+			if(confirm(text)){
+			    $.post("{% url 'orders:sign' %}",
+			    		{
+			    	      id:{{order.id}},
+			    	      csrfmiddlewaretoken:csrf
+			    	    },
+			    	    function(data,status){
+			    	    	if(data==1){
+			    	    		location.reload();
+			    	    		alert("签收")
 			    	    	}else{
 			    	    		alert(data)
 			    	    	}
@@ -189,11 +241,11 @@
 	});
 	</script>
 {% endblock %}
-		{% block content %}
-		<form id="orderform" onsubmit="return reject()">
+		{% block content %}				<!-- 提交函数 -->
+		<form id="orderform" onsubmit="return {% if user.state == 1 %}reject(){% elif user.state == 2 %}publish(){% endif %}">
 			{% csrf_token %}
 			<div class="verifyview">
-				<table style="width:80%;margin-bottom:10px" border="1">
+				<table style="margin-bottom:10px" border="1">
 					<tr>
 						<th><label>命令号</label></th>
 						<td><label>{{order.id}}</label></td>
@@ -214,15 +266,14 @@
 					</tr>
 					<tr>
 						<th><label>命令内容</label></th>
-						<td colspan="7">
-							<div id="orderitemlist" style="min-height:640px">
+						<td colspan="7" style="text-align:left">
+							<div id="orderitemlist" style="min-height:600px;">
 							{% for orderitem in orderitemlist %}
 								<div class="orderitem" onmouseover="overItem(this)" onmouseout="leaveItem(this)" id="1">
-									<!-- <div class="item" style="text-align:right;"><a class="deletelink" onclick="deleteItem(this)"></a></div> -->
-									<div class="item1"><span>{% indexCN forloop.counter %}</span>、&nbsp{{orderitem.start_time}}至{{orderitem.end_time}}，因{{orderitem.place}}{{orderitem.cause}}</div>
-									<div class="item">1.&nbsp速度不高于{{orderitem.speed_limit}}，{{orderitem.speed_note}}</div>
-									<div class="item">2.&nbsp{{orderitem.pattern}}</div>
-									<div class="item">3.&nbsp{{orderitem.device}}</div>
+									<div class="item1"><span>{% indexCN forloop.counter %}</span>、&nbsp{{orderitem.start_time}}至{{orderitem.end_time}}{% if orderitem.place %}，因{{orderitem.place}}{{orderitem.cause}}{% endif %}</div>
+									{% if orderitem.speed_limit %}<div class="item"><span id="i"></span>&nbsp速度不高于{{orderitem.speed_limit}}km/h，{{orderitem.speed_note}}</div>{% endif %}
+									{% if orderitem.pattern %}<div class="item"><span id="i"></span>&nbsp{{orderitem.pattern}}</div>{% endif %}
+									{% if orderitem.device %}<div class="item"><span id="i"></span>&nbsp{{orderitem.device}}</div>{% endif %}
 								</div>
 							{% endfor %}
 							</div>
@@ -232,39 +283,73 @@
 						<th><label>单位</label></th>
 						<td><label>{{ order.unit }}</label></td>
 						<th><label>签收人</label></th>
-						<td><label></label></td>
+						<td>
+							<label>
+<!-- 								签收人栏
+								{% if user.state == 2 %}
+									{% if order.status_code == 3 %}
+										{{ orderform.receiver }}
+									{% else %}
+										{{order.receiver}}
+									{% endif %}
+								{% elif user.state == 3 %}
+									{% if order.status_code == 4 %}
+										{{order.receiver}}
+									{% elif order.status_code == 6 %}
+										{{ order.receiver }}{{ order.receivetime }}签收
+									{% endif %}
+								{% endif %} -->
+								
+								{% if order.status_code == 3 %}
+									{% if user.state == 2 %}
+										{{ orderform.receiver }}
+									{% endif %}
+								{% else %}
+									{{ order.receiver }}
+									{% if order.receivetime %}
+										{{ order.receivetime }}签收
+									{% endif %}
+								{% endif %}
+							</label>
+						</td>
 						<th><label>复核人</label></th>
 						<td><label>{{ order.verifier }}</label></td>
 						<th><label>撤除人</label></th>
-						<td><label></label></td>
+						<td><label>{{ order.recaller }}</label></td>
 					</tr>
 				</table>
-				{% if order.status_code == 1 %}
-				<div id="addnote"></div>
-				{% elif order.status_code == 2 %}
-				<div id="addnote">{{order.note}}</div>
+				<!-- 右侧批注栏 -->
+				{% if user.state == 1 %}
+					{% if order.status_code == 1 %}
+						<div id="addnote"></div>
+					{% elif order.status_code == 2 %}
+						<div id="addnote">{{order.note}}</div>
+					{% endif %}
 				{% endif %}
 			</div>
-			{% if user.state == 1 %}
-			{% if order.status_code == 1 %}
+			<!-- 底部按钮 -->
 			<div class="submit-row" style="display:flex;justify-content:space-around">
-				<input id="pass" type="button" value="通过" name="_addanother">
-				<input type="submit" style="background:#CC3434" value="驳回" name="_addanother">
+				{% if user.state == 1 %}
+					{% if order.status_code == 1 %}
+						<input id="pass" type="button" value="通过" name="_addanother">
+						<input type="submit" style="background:#CC3434" value="驳回" name="_addanother">
+					{% endif %}
+				{% elif user.state == 2 %}
+					{% if order.status_code == 3 %}
+						<input type="submit" value="发布" name="_addanother">
+					{% elif order.status_code == 4 %}
+						<input onclick="onprint()" type="button" value="打印" name="_addanother">
+						<input id="recall" type="button" style="background:#CC3434" value="撤除" name="_addanother">
+					{% elif order.status_code == 5 %}
+					{% endif %}
+				{% elif user.state == 3 %}
+					{% if order.status_code == 4 %}
+						<input id="sign" type="button" value="签收" name="_addanother">
+					{% elif order.status_code == 6 %}
+						<input onclick="onprint()" type="button" value="打印" name="_addanother">
+					{% endif %}
+				{%endif%}
 			</div>
-			{% endif %}
-			{% elif user.state == 2 %}
-			<div class="submit-row" style="display:flex;justify-content:space-around">
-			{% if order.status_code == 3 %}
-				<input id="publish" type="button" value="发布" name="_addanother">
-			{% elif order.status_code == 4 %}
-				<script type="text/javascript" src="{% static 'bootstrap/js/jquery.jqprint-0.3.js' %}"></script>
-				<script type="text/javascript" src="{% static 'bootstrap/js/jquery-migrate-1.2.1.min.js' %}"></script>
-				<input onclick="onprint()" type="button" value="打印" name="_addanother">
-				<input id="recall" style="background:#CC3434" value="撤除" name="_addanother">
-			{% elif order.status_code == 5 %}
-			{%endif%}
-			</div>
-			{% endif %}
 		</form>
 		{% endblock %}
 		

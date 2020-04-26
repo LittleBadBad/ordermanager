@@ -37,15 +37,15 @@ class logForm(forms.Form):
 
 class regForm(forms.Form): # 自定义表单类，并继承forms.Form
     username = forms.CharField(
-        min_length=3,
         max_length=20,
         label='用户名',
         widget=forms.TextInput(attrs={"class": "vTextField"})
     )
     CHECKBOX_CHOICES = (
-         (0,'普通用户'),
+         (0,'调度员'),
          (1,'审核员'),
-         (2,'管理员')
+         (2,'管理员'),
+         (3,'值班员')
          )
     telephone = forms.CharField(
         max_length=11,
@@ -63,6 +63,12 @@ class regForm(forms.Form): # 自定义表单类，并继承forms.Form
         label='身份',
         choices=CHECKBOX_CHOICES,
         widget=forms.Select(attrs={"class": "vTextField"}))
+    station = forms.CharField(
+        max_length=20,
+        label='车站',
+        widget=forms.TextInput(attrs={"class": "vTextField"}),
+        required=False
+        )
     def clean_password(self):# 自定义方法（局部钩子），密码必须包含字母和数字
         password=self.cleaned_data.get('password')
         if password.isdigit() or password.isalpha():

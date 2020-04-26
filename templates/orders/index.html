@@ -23,6 +23,10 @@
 {% block JS %}
 	<script type="text/javascript">
 		$(document).ready(function(){
+			var statuslist=['未提交','审核中','未通过','待发布','发布成功','已撤除']
+			if({{firstlogin}})
+				alert("注册成功！已登录");
+			
 			$(".deletelink").click(function(){
 				if (confirm("确认删除？")){
 					var id=$(this).attr('id')
@@ -55,7 +59,6 @@
 				    	    });
 				}
 			});
-			{% if user.state == 1 or user.state == 2 %}
 			$(".orderitem").mouseover(function(){
 				$(this).css({
 					"color":"grey",
@@ -66,7 +69,17 @@
 					"color":"",
 				})
 			});
-			{% endif %}
+			$("select").change(function(){
+				var checkValue=$("select").val();
+				if(!checkValue)
+					for(let i in statuslist)
+						$("#"+statuslist[i]).show(200)
+				else
+					for(let i in statuslist)
+						if(statuslist[i]!=checkValue)
+							$("#"+statuslist[i]).hide(200)
+				$("#"+checkValue).show(200)
+			})
 		});
 	</script>
 {% endblock %}
@@ -79,7 +92,18 @@
 		
 		{% block content_title %}
 	        <div style="display: flex;justify-content: space-between;">
-	        	<h1>调度命令列表</h1>
+	        	<div style="display: flex;justify-content: space-between;width:300px">
+	        		<h1>调度命令列表</h1>
+	        		<select style="width:130px">
+	        			<option value="">---------</option>
+	        			<option value="未提交">未提交</option>
+	        			<option value="审核中">审核中</option>
+	        			<option value="未通过">未通过</option>
+	        			<option value="待发布">待发布</option>
+	        			<option value="发布成功">发布成功</option>
+	        			<option value="已撤除">已撤除</option>
+	        		</select>
+	        	</div>
 	        	{% if user.state == 0 %}
 	        	<a class="addlink" style="background-size:40px 40px;height:40px;width:40px" href="{% url 'orders:neworder' %}"></a>
 	        	{% endif %}
@@ -105,7 +129,8 @@
 				        		{% endif %}
 				        	</tr>
 				        	{% for order in orders %}
-				        	<tr class="orderitem" onclick="{% if user.state == 1 %}javascrtpt:window.location.href='{% url "orders:verify" orderid=order.id%}'{% elif user.state == 2 %}javascrtpt:window.location.href='{% url "orders:publish" orderid=order.id%}'{% endif %}">
+				        	<tr class="orderitem" id="{{order.status}}"
+							onclick="javascrtpt:window.location.href={% if user.state == 1 %}'{% url "orders:verify" orderid=order.id%}'{% elif user.state == 2 %}'{% url "orders:publish" orderid=order.id%}'{% elif order.status_code != 0 and order.status_code != 2 %}'{% url "orders:check" orderid=order.id%}'{% endif %}">
 				        		<td><label>{{order.id}}</label></td>
 				        		<td><label>{{order.platform}}</label></td>
 				        		<td><label>{{order.creater}}</label></td>
